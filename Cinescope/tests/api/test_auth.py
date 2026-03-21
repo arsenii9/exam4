@@ -1,5 +1,3 @@
-import pytest
-
 
 class TestAuthAPI:
     def test_register_user(self, test_user, api_manager):

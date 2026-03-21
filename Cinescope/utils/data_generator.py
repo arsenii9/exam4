@@ -42,3 +42,25 @@ class DataGenerator:
         random.shuffle(password)
 
         return ''.join(password)
+
+    @staticmethod
+    def generate_movie_name():
+        suffix = ''.join(random.choices(string.ascii_letters, k=5))
+        return f"Test Movie {suffix}"
+
+
+    @staticmethod
+    def generate_movie_image_url():
+        return f"https://example.com/image_{random.randint(1000, 9999)}.png"
+
+    @staticmethod
+    def generate_movie_payload():
+        return {
+            "name": DataGenerator.generate_movie_name(),
+            "imageUrl": DataGenerator.generate_movie_image_url(),
+            "price": random.randint(1, 1000),
+            "description": "Test movie description",
+            "location": random.choice(["MSK", "SPB"]),
+            "published": True,
+            "genreId": 1
+        }

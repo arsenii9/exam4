@@ -1,5 +1,5 @@
 import requests
-from Cinescope.constants import BASE_URL, HEADERS, REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from Cinescope.constants import BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD
 import pytest
 from Cinescope.utils.data_generator import DataGenerator
 from Cinescope.custom_requester.custom_requester import CustomRequester
@@ -40,18 +40,43 @@ def api_manager(requester):
 @pytest.fixture
 def registered_user(api_manager, test_user):
     response = api_manager.auth_api.register_user(test_user)
-    user_id = response.json()["id"]
+    id = response.json()["id"]
 
     login_response = api_manager.auth_api.login_user(test_user)
     token = login_response.json()["accessToken"]
 
-    api_manager.user_api._update_session_headers(
-        Authorization=f"Bearer {token}"
-    )
+    api_manager.user_api.set_auth_token(token)
 
     yield {
-        "id": user_id,
+        "id": id,
         "data": test_user
     }
 
-    api_manager.user_api.delete_user(user_id)
+    api_manager.user_api.delete_user(id)
+
+@pytest.fixture
+def api_admin(api_manager):
+    admin_cred = {
+        "email": ADMIN_EMAIL,
+        "password": ADMIN_PASSWORD
+    }
+
+    login_response = api_manager.auth_api.login_user(admin_cred)
+    token = login_response.json()["accessToken"]
+    api_manager.movies_api.set_auth_token(token)
+
+    return api_manager
+
+
+@pytest.fixture
+def created_movie(api_admin):
+    data = DataGenerator.generate_movie_payload()
+
+    response = api_admin.movies_api.post_movie(data=data)
+    id = response.json()["id"]
+
+    yield {
+        "id": id,
+        "data": data
+    }
+    api_admin.movies_api.delete_movie(id)
