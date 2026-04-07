@@ -1,6 +1,8 @@
 import requests
 from Cinescope.constants import BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD
 import pytest
+
+from Cinescope.db_requester.db_helpers import DBHelper
 from Cinescope.utils.data_generator import DataGenerator
 from Cinescope.custom_requester.custom_requester import CustomRequester
 from Cinescope.api.api_manager import ApiManager
@@ -215,6 +217,11 @@ def db_session() -> Session:
     db_session = get_db_session()
     yield db_session
     db_session.close()
+
+@pytest.fixture(scope="module")
+def db_helper(db_session) -> DBHelper:
+    return DBHelper(db_session=db_session)
+
 
 @pytest.fixture(scope="function")
 def created_test_user(db_helper):

@@ -110,13 +110,22 @@ class TestMoviesAPIPositive:
 
     @allure.title("Создание фильма с проверкой в БД")
     def test_create_DB_check(self, super_admin_user, db_session):
-        data = DataGenerator.generate_movie_payload()
-        response = super_admin_user.api.movies_api.post_movie(data=data, expected_status=201)
-        movie_data = Movie(**response.json())
-        db_resp = db_session.query(MovieDBModel).filter_by(id=movie_data.id).one()
-        assert db_resp.name == data["name"]
-        assert db_resp.price == data["price"]
-        assert db_resp.description == data["description"]
-        assert db_resp.location == data["location"]
-        assert db_resp.published == data["published"]
-        assert db_resp.genre_id == data["genreId"]
+        with allure.step("Сгенерировать payload для создания фильма"):
+            data = DataGenerator.generate_movie_payload()
+
+        with allure.step("Отправить POST-запрос на создание фильма"):
+            response = super_admin_user.api.movies_api.post_movie(data=data, expected_status=201)
+
+        with allure.step("Преобразовать ответ API в модель Movie"):
+            movie_data = Movie(**response.json())
+
+        with allure.step("Получить запись фильма из БД по id"):
+            db_resp = db_session.query(MovieDBModel).filter_by(id=movie_data.id).one()
+
+        with allure.step("Проверить соответствие данных в БД и отправленного payload"):
+            assert db_resp.name == data["name"]
+            assert db_resp.price == data["price"]
+            assert db_resp.description == data["description"]
+            assert db_resp.location == data["location"]
+            assert db_resp.published == data["published"]
+            assert db_resp.genre_id == data["genreId"]

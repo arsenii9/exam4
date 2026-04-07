@@ -84,4 +84,5 @@ class DataGenerator:
         }
     @staticmethod
     def generate_random_int(max_value) -> int:
-        random.randint(0, max_value)
+        return random.randint(0, max_value)
+

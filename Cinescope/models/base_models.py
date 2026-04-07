@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, field_serializer
 from typing import Optional
 import datetime
 import re
@@ -17,16 +17,13 @@ class TestUser(BaseModel):
 
     @field_validator("passwordRepeat")
     def check_password_repeat(cls, value: str, info) -> str:
-        # Проверяем, совпадение паролей
         if "password" in info.data and value != info.data["password"]:
             raise ValueError("Пароли не совпадают")
         return value
 
-    # Добавляем кастомный JSON-сериализатор для Enum
-    class Config:
-        json_encoders = {
-            Roles: lambda v: v.value  # Преобразуем Enum в строку
-        }
+    @field_serializer("roles")
+    def serialize_roles(self, roles: list[Roles]):
+        return [role.value for role in roles]
 
 class RegisterUserResponse(BaseModel):
     id: str

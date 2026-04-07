@@ -38,6 +38,9 @@ class TestMoviesAPINegative:
 
     @allure.title("Создание фильма с недостаточными правами")
     def test_create_movie_by_common_user(self, common_user):
-        data = DataGenerator.generate_movie_payload()
-        common_user.api.movies_api.post_movie(data=data, expected_status=403)
+        with allure.step("Сгенерировать payload для создания фильма"):
+            data = DataGenerator.generate_movie_payload()
+
+        with allure.step("Отправить POST-запрос на создание фильма от пользователя без прав"):
+            common_user.api.movies_api.post_movie(data=data, expected_status=403)
 
