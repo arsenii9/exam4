@@ -1,5 +1,5 @@
 import requests
-from Cinescope.constants import BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD
+from Cinescope.constants import BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, DEFAULT_UI_TIMEOUT
 import pytest
 
 from Cinescope.db_requester.db_helpers import DBHelper
@@ -12,6 +12,9 @@ from Cinescope.constants_directory.roles import Roles
 from Cinescope.models.base_models import TestUser
 from sqlalchemy.orm import Session
 from Cinescope.db_requester.db_client import get_db_session
+from Cinescope.models.login_page_model import CinescopLoginPage
+from Cinescope.common.tools import Tools
+
 
 
 @pytest.fixture
@@ -228,4 +231,46 @@ def created_test_user(db_helper):
     user = db_helper.create_test_user(DataGenerator.generate_user_data())
     yield user
     if db_helper.get_user_by_id(user.id):
+
         db_helper.delete_user(user)
+
+@pytest.fixture(scope="session")  # Браузер запускается один раз для всей сессии
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=True)  # headless=True для CI/CD, headless=False для локальной разработки
+    yield browser  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    browser.close()  # Браузер закрывается после завершения всех тестов
+
+
+@pytest.fixture(scope="function")
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir('playwright_trace', log_name)
+    context.tracing.stop(path=trace_path)
+    context.close()
+
+
+@pytest.fixture(scope="function")  # Страница создается для каждого теста
+def page(context):
+    page = context.new_page()
+    yield page  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    page.close()  # Страница закрывается после завершения теста
+
+
+@pytest.fixture(scope="function")
+def logged_in_ui_user(page, registered_user):
+    login_page = CinescopLoginPage(page=page)
+    login_page.open()
+    login_page.login(
+        registered_user["data"]["email"],
+        registered_user["data"]["password"]
+    )
+
+    page.wait_for_timeout(3000)
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_load_state("networkidle")
+
+    return page
