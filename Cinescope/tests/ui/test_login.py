@@ -12,8 +12,7 @@ class TestloginPage:
     def test_login_by_ui(self, page, registered_user):
         login_page = CinescopLoginPage(page)
 
-        with allure.step("Открыть страницу логина"):
-            login_page.open()
+        login_page.open()
 
         with allure.step("Выполнить вход в систему"):
             login_page.login(

@@ -18,8 +18,7 @@ class TestRegisterPage:
 
         register_page = CinescopRegisterPage(page)
 
-        with allure.step("Открыть страницу регистрации"):
-            register_page.open()
+        register_page.open()
 
         with allure.step("Выполнить регистрацию нового пользователя"):
             register_page.register(
