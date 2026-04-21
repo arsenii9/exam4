@@ -269,8 +269,6 @@ def logged_in_ui_user(page, registered_user):
         registered_user["data"]["password"]
     )
 
-    page.wait_for_timeout(3000)
-    page.wait_for_load_state("domcontentloaded")
-    page.wait_for_load_state("networkidle")
+    page.wait_for_load_state()
 
     return page
